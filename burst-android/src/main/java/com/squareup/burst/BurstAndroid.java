@@ -23,10 +23,14 @@ public class BurstAndroid extends AndroidTestRunner {
   }
 
   @Override public void setTest(Test test) {
+    if (instrumentation == null) {
+      throw new IllegalStateException("setInstrumentation not called.");
+    }
     if (!(test instanceof TestSuite)) {
       throw new IllegalArgumentException("Expected instance of TestSuite.");
     }
 
+    ClassLoader classLoader = instrumentation.getTargetContext().getClassLoader();
     TestSuite godTestSuite = new TestSuite();
     try {
       explodeSuite((TestSuite) test, godTestSuite);
@@ -36,12 +40,22 @@ public class BurstAndroid extends AndroidTestRunner {
     super.setTest(godTestSuite);
   }
 
-  private void explodeSuite(TestSuite testSuite, TestSuite result) throws Exception {
-    if (instrumentation == null) {
-      throw new IllegalStateException("setInstrumentation not called.");
-    }
+  protected void addClassToSuite(Class<?> cls, TestSuite suite) {
+    Constructor<?> constructor = findBurstableConstructor(cls);
+    Object[][] constructorArgsList = Burst.explodeArguments(constructor);
 
-    ClassLoader classLoader = instrumentation.getTargetContext().getClassLoader();
+    for (Object[] constructorArgs : constructorArgsList) {
+
+    }
+  }
+
+  protected void addMethodToSuite(Class<?> cls, Method method, TestSuite suite) {
+
+  }
+
+  private void explodeSuite(TestSuite testSuite, TestSuite result) throws Exception {
+
+
     Class<?> testClass = classLoader.loadClass(testSuite.getName());
 
     Constructor<?> constructor = findBurstableConstructor(testClass);
